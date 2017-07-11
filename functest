@@ -1,0 +1,28 @@
+1、下载dockers镜像
+    docker pull opnfv/functest
+2、运行docker
+    sudo docker run --privileged=true -id -e INSTALLER_TYPE=compass -e INSTALLER_IP=192.168.200.2   -e DEPLOY_SCENARIO=os-nosdn-nofeature-ha   -e CI_DEBUG=false -e DEPLOY_TYPE=virt        -v /home/functest/results/master:/home/opnfv/functest/results         opnfv/functest:latest /bin/bash
+3、查看机器上的docker列表，以及容器的id
+    docker ps
+    CONTAINER ID        IMAGE                   COMMAND             CREATED             STATUS              PORTS               NAMES
+    b87cefb9b5b7        opnfv/functest:latest   "/bin/bash"         26 seconds ago      Up 25 seconds                           nostalgic_gates
+4、进入docker
+    docker exec -it b87cefb9b5b71b3adc4717cdc16a287d1b079aafc0fedf3ddf513ed05abfe061 bash   (注，那个号码是docker的id，之前用dockers ps 查看的，要自己给，输入前两位按tab建就可以补全)
+
+5、在docker里面运行functest 的前期环境
+    functest env prepare
+
+6、在docker里运行healthcheck（注 3分钟左右）
+
+    functest tier run healthcheck
+
+7、在docker里运行smoke测试（注：大概要30分钟左右）
+
+    functest tier run  smoke
+
+注:在跑以上命令的时候在屏幕有输出，然后再路径/home/opnfv/functest/results下面有log文件可以看到一些更详细的信息：
+
+healthcheck.log里面包含了healthcheck时候产生的tenant、project、user、image、network等
+
+functest.log里面包含了我们前期环境准备，healthcheck、smoke测试的信息。
+

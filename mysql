@@ -1,0 +1,11 @@
+清空带外键的table
+SET foreign_key_checks=0;
+truncate table machine;
+SET foreign_key_checks=1;
+
+
+重设root免密码登录
+SET PASSWORD FOR root@localhost=PASSWORD('');
+
+show grants for root@'localhost';
+

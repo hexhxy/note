@@ -1,0 +1,87 @@
+tcpdump -i eth1 host 10.1.0.52 and port 80 -n
+
+为网段添加路由
+route add -net 172.16.10.0 netmask 255.255.255.0 gateway 192.168.104.1 dev eth2
+
+廊坊vpn
+screen -S lf_openvpn openvpn /etc/openvpn/huangxiangyu_lf.ovpn
+
+ssh -L 0.0.0.0:5920:172.16.1.4:5900 root@10.1.0.53
+
+
+ip tuntap add dev openo mode tap
+ip tuntap del dev openo mode tap
+
+netstat -nltp | egrep ':80|:443'
+
+Ip -d link 查看veth
+
+iptables -t nat -A PREROUTING -d 192.168.31.2 -p tcp --dport  8888 -j DNAT --to 192.16.1.222:443
+
+
+udhcpc -i eth4
+dmesg | grep eth
+
+iptables -t nat -L -n --line-numbers
+
+iptables -t nat -D PREROUTING 1
+
+ssh -L 0.0.0.0:5920:172.16.1.4:5900 root@10.1.0.53
+查看fingerprint ssh-keygen -l -f id_rsa
+
+为网段添加路由
+route add -net 172.16.10.0 netmask 255.255.255.0 gateway 192.168.104.1 dev eth2
+
+廊坊vpn
+screen -S lf_openvpn openvpn /etc/openvpn/huangxiangyu_lf.ovpn
+
+OPENSTACK计算节点上虚拟网络（NEUTRON）详解
+http://mytrix.me/2014/04/dive-into-openstack-neutron-on-compute-node/
+
+Linux 上的基础网络设备详解
+http://www.ibm.com/developerworks/cn/linux/1310_xiawc_networkdevice/
+
+http://my.oschina.net/JerryBaby/blog/301407
+
+https://github.com/yongluo2013/osf-openstack-training/blob/master/installation/openstack-icehouse-for-centos65.md
+
+https://www.zybuluo.com/ncepuwanghui/note/389373#42-%E8%BA%AB%E4%BB%BD%E6%9C%8D%E5%8A%A1%E9%85%8D%E7%BD%AEidentity-service-keystone
+
+Introducing Linux Network Namespaces
+http://blog.scottlowe.org/2013/09/04/introducing-linux-network-namespaces/
+
+从实例查看网络
+virsh list
+virsh dumpxml instance-XXXX
+# virsh dumpxml instance-00000052
+</controller>
+    <interface type='bridge'>
+      <mac address='fa:16:3e:3e:da:f1'/>
+      <source bridge='qbrc08d85da-69'/>   #OVS实现安全组的网桥
+      <target dev='tapc08d85da-69'/>      #虚拟网卡设备
+      <model type='virtio'/>              #虚拟网卡驱动
+      <alias name='net0'/>               #虚拟网卡别名
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+
+
+ethtool -S
+
+
+brctl show
+
+
+
+lshw -class network
+
+
+ ip link
+
+
+virbr0 是 KVM 默认创建的一个 Bridge，其作用是为连接其上的虚机网卡提供 NAT 访问外网的功能。
+
+删除veth virbr0 vxlan设备 ip link delete 
+
+
+
+删除bridge设备 ifconfig 首先ifconfig brXXXX down再brctl delbr brXXX
+

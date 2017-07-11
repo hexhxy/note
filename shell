@@ -1,0 +1,94 @@
+变量替换
+    exp.  `cd ${BASH_SOURCE[0]%/*};pwd`   DEPLOY_FIRST_TIME=${DEPLOY_FIRST_TIME-"true"}
+
+    file=/dir1/dir2/dir3/my.file.txt
+    可以用${ }分别替换得到不同的值：
+    ${file#*/}：删掉第一个 / 及其左边的字符串：dir1/dir2/dir3/my.file.txt
+    ${file##*/}：删掉最后一个 / 及其左边的字符串：my.file.txt
+    ${file#*.}：删掉第一个 . 及其左边的字符串：file.txt
+    ${file##*.}：删掉最后一个 . 及其左边的字符串：txt
+    ${file%/*}：删掉最后一个 / 及其右边的字符串：/dir1/dir2/dir3
+    ${file%%/*}：删掉第一个 / 及其右边的字符串：(空值)
+    ${file%.*}：删掉最后一个 . 及其右边的字符串：/dir1/dir2/dir3/my.file
+    ${file%%.*}：删掉第一个 . 及其右边的字符串：/dir1/dir2/dir3/my
+    
+    记忆的方法为：
+    #是去掉左边（键盘上#在 $ 的左边）
+    %是去掉右边（键盘上% 在$ 的右边）
+    单一符号是最小匹配；两个符号是最大匹配
+    ${file:0:5}：提取最左边的 5 个字节：/dir1
+    ${file:5:5}：提取第 5 个字节右边的连续5个字节：/dir2
+    也可以对变量值里的字符串作替换：
+    ${file/dir/path}：将第一个dir 替换为path：/path1/dir2/dir3/my.file.txt
+    ${file//dir/path}：将全部dir 替换为 path：/path1/path2/path3/my.file.txt
+
+    ${file-my.file.txt} #如果$file沒有设置，则使用my.file.txt作返回值。(空值及非空值时不作处理) 
+    ${file:-my.file.txt} #如果$file沒有设置或设置为空值，则使用my.file.txt作返回值。(非空值时不作处理)
+    ${file+my.file.txt} #如果$file设为空值或非空值，均使用my.file.txt作返回值。(沒设定时不作处理)
+    ${file:+my.file.txt} #如果$file为非空值，则使用my.file.txt作返回值。(沒设定及空值时不作处理)
+    ${file=my.file.txt} #如果$file沒设定，则使用my.file.txt作返回值，同时将 $file 賦值为 my.file.txt。(空值及非空值时不作处理)
+    ${file:=my.file.txt} #如果$file沒设定或为空值，则使用my.file.txt作返回值，同时将 $file 賦值为 my.file.txt。(非空值时不作处理)
+    ${file?my.file.txt} #如果$file沒设定，则将my.file.txt输出至 STDERR。(空值及非空值时不作处理)
+    ${file:?my.file.txt} #如果$file沒设定或为空值，则将my.file.txt输出至 STDERR。(非空值时不作处理)
+    
+journalctl -xe
+
+
+Ctrl+z挂起 jobs查看 bg %N N号任务后台运行 fg %N N号任务前台继续
+
+cat /etc/ntp.conf | grep -v '#' | sed '/^$/d'
+
+du -h --max-depth=1
+
+终端只显示相对路径
+vim ~/.bashrc
+
+找到 PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+改为 PS1='${debian_chroot:+($debian_chroot)}\u@\h:\W\$'
+
+grep -rn --exclude-dir=work compass-tasks .
+
+ls -F | grep '/$' 只查看文件夹
+
+来自 <http://www.jb51.net/article/45313.htm> 
+
+.vimrc    set cc 80
+
+w 查看用户
+
+pkill -kill -t TTY来关闭
+
+mv /etc/{aa, bb} /dev/null
+
+更换root@localhost显示
+/etc/bash.bashrc 里面更改 $PS1 然后source一下
+
+du -sh 查看文件夹大小
+
+tar -zxvf  XXXXX   --strip-components 1 解压去掉顶层目录
+
+lsof -nPi :5672 | grep nova
+
+:%s/\s\+$//g
+sed -i "s/\s\+$//g" *
+
+行尾加1.0.0
+%s/\(image.*\).*/\1:1.0.0/g
+
+gu gU vim大小写转换
+
+git fetch https://gerrit.opnfv.org/gerrit/opera refs/changes/17/26817/10 && git checkout FETCH_HEAD
+
+mysql -ucompass -pcompass -Dcompass -e "select *  from cluster;" \
+| awk -F"," '{for(i=1;i<NF;i++)if($i~/\"127.0.0.1\"/) {print $(i+2);break;}}' | grep -oP "\d+.\d+.\d+.\d+"
+
+ssh-keygen -lf ~/.ssh/id_rsa
+
+Redhat cp -rf ： \cp -rf
+
+wget -c -r -np ftp://name:pw@server/dir/
+
+umount -l umount一个busy device
+
+
+IFS=',' read -ra HOSTS <<< "$HOSTNAMES" （-a 读成数组变量 -r 取消转义）

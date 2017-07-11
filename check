@@ -1,0 +1,11 @@
+pip install yamllint
+find ./ -name "*.yml" | xargs yamllint > /compassdir/yaml_check.log
+
+apt-get install python-flake8
+flake8 planbook_done.py  # noqa: E402
+
+monit stop jenkins
+monit start jenkins
+ps aux | grep java
+kill -9 (java id)
+

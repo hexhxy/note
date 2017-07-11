@@ -1,0 +1,5 @@
+COMPASS-CORE ansible
+
+ansible-playbook -e pipeline=true= --private-key=/root/compass_openstack/compass4nfv/work/deploy/vm/compass/boot.rsa --user=root --connection=ssh --inventory-file=/root/compass_openstack/compass4nfv/work/deploy/vm/compass/inventory.file /root/compass_openstack/compass4nfv/work/deploy/installer/compass-install/install/compass_nodocker.yml
+
+Ansible 1.5.4 会残留/etc/ansible/ansible.cfg 文件在ansible升级后需要移除

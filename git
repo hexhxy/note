@@ -1,0 +1,6 @@
+git checkout -b stable/colorado origin/stable/colorado
+git add
+git commit -s
+git review -s
+git push gerrit HEAD:refs/publish/stable/colorado
+

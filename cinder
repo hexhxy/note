@@ -1,0 +1,10 @@
+openstack volume create --size 1 \
+--image $(glance image-list | grep cirros-test | awk '{print $2}')  \
+bootable_volume
+
+openstack server create --flavor m1.tiny \
+--volume $(openstack volume list | grep bootable_volume | awk '{print $2}')\
+--nic net-id=$(neutron net-list | grep demo-net | awk '{print $2}') \
+--security-group default  \
+
+--key-name testkey demo1

@@ -1,0 +1,6 @@
+egrep ‘vmx|svm’ /proc/cpuinfo 
+
+cloud-localds my-seed.img user-data
+
+qemu-img info disk.img
+qemu-img resize disk.img +1000G

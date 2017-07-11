@@ -1,0 +1,209 @@
+#!/bin/bash
+##############################################################################
+# Copyright (c) 2016 HUAWEI TECHNOLOGIES CO.,LTD and others.
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+##############################################################################
+# Run this script in a controller node.
+
+# source the admin credentials to gain access to admin-only CLI commands:
+source /opt/admin-openrc.sh
+
+# Download the source image:
+wget http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+
+# Upload the image to the Image service using the QCOW2 disk format, bare container format:
+glance image-create --name "cirros" \
+    --file cirros-0.3.4-x86_64-disk.img  \
+    --disk-format qcow2 --container-format bare --visibility public
+
+# Add rules to the default security group:
+nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
+nova secgroup-add-rule default tcp 22 22 0.0.0.0/0
+
+# Create the network and a subnet on the network:
+openstack network create  --share \
+--provider-physical-network physnet \
+--provider-network-type flat ext-net
+
+openstack subnet create --network ext-net \
+--allocation-pool start=192.168.31.100,end=192.168.31.200 \
+--dns-nameserver 8.8.8.8 --gateway 192.168.31.1 \
+--subnet-range 192.168.31.0/24 ext-subnet
+
+
+neutron net-create demo-net
+neutron subnet-create demo-net 10.10.10.0/24 --name demo-subnet --gateway 10.10.10.1
+
+# Create the router, add the demo-net network subnet and set a gateway on the ext-net network on the router:
+neutron router-create demo-router
+neutron router-interface-add demo-router demo-subnet
+neutron router-gateway-set demo-router ext-net
+
+
+openstack flavor show m1.tiny   || openstack flavor create --ram 512 --disk 5 --vcpus 1 --public m1.tiny 
+openstack flavor show m1.small  || openstack flavor create --ram 1024 --disk 10 --vcpus 1 --public m1.small 
+openstack flavor show m1.medium || openstack flavor create --ram 2048 --disk 10 --vcpus 2 --public m1.medium 
+openstack flavor show m1.large  || openstack flavor create --ram 3072 --disk 10 --vcpus 2 --public m1.large 
+openstack flavor show m1.xlarge || openstack flavor create --ram 8096 --disk 30 --vcpus 4 --public m1.xlarge 
+
+
+openstack server create --image cirros --nic net-id=20d3a13a-f9f3-45aa-9824-df179b4ff86e --flavor tiny demo2
+openstack floating ip create ext-net
+openstack server add floating ip demo2 192.16.1.113
+
+# Launch the instance:
+nova boot \
+    --key-name host1-key \
+    --flavor m1.tiny  \
+    --image cirros \
+    --nic net-id=$(neutron net-list | grep demo-net | awk '{print $2}') \
+    --security-group default demo1
+
+nova boot \
+    --flavor m1.tiny --key-name mykey\
+    --image cirros \
+    --nic net-id=$(neutron net-list | grep demo-net | awk '{print $2}') \
+    --security-group default demo2
+
+# Create a floating IP address and associate it with the instance:
+demo1_floating_ip=$(neutron floatingip-create ext-net | grep floating_ip_address | awk '{print $4}')
+nova floating-ip-associate demo1 $demo1_floating_ip
+echo "demo1's floating ip is $demo1_floating_ip"
+
+demo2_floating_ip=$(neutron floatingip-create ext-net | grep floating_ip_address | awk '{print $4}')
+nova floating-ip-associate demo2 $demo2_floating_ip
+echo "demo2's floating ip is $demo2_floating_ip"
+
+# Login the instance
+# ssh cirros@$demo1_floating_ip
+# ssh cirros@$demo2_floating_ip
+# NOTE:PASSWORD is cubswin:)
+
+
+
+#!/bin/bash
+##############################################################################
+# File Name: “launch_instance.sh”
+# Author：   “LiYuenan”
+# mail:      "liyuenan@huawei.com"
+##############################################################################
+
+# Run this script in a controller node.
+set -x
+set -e
+demo1_name=demo1
+demo2_name=demo2
+
+# source the admin credentials to gain access to admin-only CLI commands:
+source /opt/admin-openrc.sh
+
+# Download the source image:
+if [[ ! -e cirros-0.3.4-x86_64-disk.img ]]; then
+    wget http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+fi
+
+# Upload the image to the Image service using the QCOW2 disk format, bare container format:
+if [[ ! $(glance image-list | grep cirros) ]]; then
+    glance image-create --name "cirros" \
+        --file cirros-0.3.4-x86_64-disk.img  \
+        --disk-format qcow2 --container-format bare
+fi
+
+# List the image
+glance image-list
+
+# Add rules to the default security group:
+if [[ ! $(nova secgroup-list-rules default | grep icmp) ]]; then
+    nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
+fi
+if [[ ! $(nova secgroup-list-rules default | grep tcp) ]]; then
+    nova secgroup-add-rule default tcp 22 22 0.0.0.0/0
+fi
+
+# List the rulse
+nova secgroup-list-rules default
+
+# Create the net and a subnet on the network:
+if [[ ! $(neutron net-list | grep demo-net) ]]; then
+    neutron net-create demo-net
+fi
+if [[ ! $(neutron subnet-list | grep demo-subnet) ]]; then
+    neutron subnet-create demo-net 10.10.10.0/24 --name demo-subnet --gateway 10.10.10.1
+fi
+
+# List the net and subnet
+neutron net-list
+neutron subnet-list
+
+# Create the router, add the demo-net network subnet and set a gateway on the ext-net network on the router:
+if [[ ! $(neutron router-list | grep demo-router) ]]; then
+    neutron router-create demo-router
+    neutron router-interface-add demo-router demo-subnet
+    neutron router-gateway-set demo-router ext-net
+fi
+
+# List the router
+neutron router-list
+
+# Create m1.nano flavor
+if [[ ! $(openstack flavor list | grep m1.nano) ]]; then
+    openstack flavor create --id 0 --vcpus 1 --ram 64 --disk 1 m1.nano
+fi
+
+openstack volume create --size 1 --image $(glance image-list | grep cirros | awk '{print $2}') bootable_volume
+
+openstack server create --flavor m1.tiny \
+                         --volume $(openstack volume list | grep bootable_volume | awk '{print $2}') \
+                         --nic net-id=$(neutron net-list | grep demo-net | awk '{print $2}') \
+                         --security-group default \
+                                           --key-name mykey demo
+
+# Launch the instance:
+if [[ ! $(nova list | grep demo1) ]]; then
+nova boot \
+    --flavor m1.nano \
+    --image cirros \
+    --nic net-id=$(neutron net-list | grep demo-net | awk '{print $2}') \
+    --security-group default \
+    $demo1_name
+fi
+
+if [[ ! $(nova list | grep demo2) ]]; then
+nova boot \
+    --flavor m1.nano \
+    --image cirros \
+    --nic net-id=$(neutron net-list | grep demo-net | awk '{print $2}') \
+    --security-group default \
+    $demo2_name
+fi
+
+sleep 10
+
+# Create a floating IP address and associate it with the instance:
+demo1_floating_ip=$(neutron floatingip-create ext-net | grep floating_ip_address | awk '{print $4}')
+nova floating-ip-associate $demo1_name $demo1_floating_ip
+
+demo2_floating_ip=$(neutron floatingip-create ext-net | grep floating_ip_address | awk '{print $4}')
+nova floating-ip-associate $demo2_name $demo2_floating_ip
+
+# List the instance
+nova list
+
+set +x
+set +e
+
+# Login the instance
+# ssh cirros@$demo1_floating_ip
+# ssh cirros@$demo2_floating_ip
+echo "-----------------------------"
+echo "Login the instance"
+echo "-----------------------------"
+echo "ssh cirros@$demo1_floating_ip"
+echo "ssh cirros@$demo2_floating_ip"
+echo "DEFAULT PASSWORD is cubswin:)"
+echo "-----------------------------"
+

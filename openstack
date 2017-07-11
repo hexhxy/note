@@ -1,0 +1,3 @@
+/openstack/venvs/horizon-15.1.4/lib/python2.7/site-packages/openstack_dashboard/local/local_settings.py
+HORIZON_IMAGES_UPLOAD_MODE = 'legacy'
+
